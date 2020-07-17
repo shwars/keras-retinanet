@@ -42,6 +42,7 @@ from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..preprocessing.pascal_voc import PascalVocGenerator
+from ..preprocessing.generic_voc import GenericVocGenerator
 from ..utils.anchors import make_shapes_callback
 from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.gpu import setup_gpu
@@ -291,6 +292,25 @@ def create_generators(args, preprocess_image):
             shuffle_groups=False,
             **common_args
         )
+    elif args.dataset_type == 'voc':
+        train_generator = GenericVocGenerator(
+            args.pascal_path,
+            'train',
+            args.voclasses,
+            image_extension=args.image_extension,
+            transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
+            **common_args
+        )
+
+        validation_generator = GenericVocGenerator(
+            args.pascal_path,
+            'val',
+            args.voclasses,
+            image_extension=args.image_extension,
+            shuffle_groups=False,
+            **common_args
+        )
     elif args.dataset_type == 'csv':
         train_generator = CSVGenerator(
             args.annotations,
@@ -397,6 +417,11 @@ def parse_args(args):
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
     pascal_parser.add_argument('--image-extension',   help='Declares the dataset images\' extension.', default='.jpg')
+
+    voc_parser = subparsers.add_parser('voc')
+    voc_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
+    voc_parser.add_argument('--voclasses', help='Comma-separated list of classes')
+    voc_parser.add_argument('--image-extension',   help='Declares the dataset images\' extension.', default='.jpg')
 
     kitti_parser = subparsers.add_parser('kitti')
     kitti_parser.add_argument('kitti_path', help='Path to dataset directory (ie. /tmp/kitti).')
